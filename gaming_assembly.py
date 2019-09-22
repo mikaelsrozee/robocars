@@ -35,21 +35,28 @@ Train = True
 Race = False
 
 
-def update_screen(env, screen, particle_list, track_image, track_rect):
+def update_screen(env, screen):
     font = pygame.font.Font(None, 32)
     header = font.render('LEADERBOARD', True, RED, WHITE)
     header_rect = header.get_rect()
     header_rect.center = (800 + 200, 40)
 
+    track_image = pygame.image.load(track)
+    track_rect = track_image.get_rect()
+    track_rect.left, track_rect.left = [0, 0]
+
     env.update()
     screen.fill(env.colour)
     screen.blit(track_image, track_rect)
+
+    for pos in checkpoints:
+        pygame.draw.circle(screen, RED, pos, 5, 5)
 
     # draw cars
     for car in env.particles:
         pygame.draw.circle(screen, car.colour, (int(car.x), int(car.y)), car.size, car.thickness)
 
-        sorted_list = sorted(particle_list, key=lambda particle: particle.score)[::-1]
+        sorted_list = sorted(env.particles, key=lambda particle: particle.score)[::-1]
 
         # draw leaderboard
         screen.blit(header, header_rect)
@@ -132,13 +139,6 @@ def train():
 
         pygame.display.set_caption('Generation ' + str(n + 1))
 
-        particle_list = env.particles
-
-        # set up background
-        track_image = pygame.image.load(track)
-        track_rect = track_image.get_rect()
-        track_rect.left, track_rect.left = [0, 0]
-
         # initiate run
         pygame.init()
         running = True
@@ -150,16 +150,13 @@ def train():
                 if event.type == pygame.QUIT:
                     running = False
 
-            for pos in checkpoints:
-                pygame.draw.circle(screen, RED, pos, 5, 5)
-
-            update_screen(env, screen, particle_list, track_image, track_rect)
+            update_screen(env, screen)
 
             current_time = time.time()
             env.time_elapsed = int(round((current_time - start_time) * 1000))
 
         # breed new generation
-        sorted_list = sorted(particle_list, key=lambda particle: particle.score)[::-1]
+        sorted_list = sorted(env.particles, key=lambda particle: particle.score)[::-1]
         env = pyparticles.Environment((width, height), image=track, checkpoints=checkpoints, colliding=False)
 
         for i in range(n_to_keep - 1):
@@ -219,12 +216,6 @@ def race():
         env.addParticles(1, x=starting_grid[i][0], y=starting_grid[i][1], speed=0, size=5, control_rods=car.control_rods,
                          bias=car.bias, fov=car.fov)
         i += 1
-    particle_list = env.particles
-
-    # set up background
-    track_image = pygame.image.load(track)
-    track_rect = track_image.get_rect()
-    track_rect.left, track_rect.left = [0, 0]
 
     pygame.init()
 
@@ -238,7 +229,7 @@ def race():
                 running = False
 
         # update cars + leaderboard
-        update_screen(env, screen, particle_list, track_image, track_rect)
+        update_screen(env, screen)
 
         current_time = time.time()
         env.time_elapsed = int(round((current_time - start_time) * 100000)) / 100
