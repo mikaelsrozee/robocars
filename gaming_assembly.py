@@ -1,9 +1,15 @@
 # gaming_assembly.py
 # uses pyparticles to create displayed game
 
+import itertools
+import math
+import pickle
+import random
+import time
+
 import pygame
+
 import pyparticles
-import random, math, itertools, time, pickle
 
 # declare size of window and track to use
 (width, height) = (1200, 450)
