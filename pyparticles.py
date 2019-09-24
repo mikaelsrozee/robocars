@@ -93,7 +93,7 @@ def breed(p1, p2):
     return control_rods, bias, fov, colour
 
 
-class Particle():
+class Particle:
     def __init__(self, x, y, size, mass=1, **kargs):
         self.x = x
         self.y = y
