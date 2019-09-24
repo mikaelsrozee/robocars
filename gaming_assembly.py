@@ -129,36 +129,45 @@ def train():
     for i in range(generation_size):
         env.addParticles(1, x=checkpoints[0][0], y=checkpoints[0][1], speed=0, size=5)
 
+    # initialise pygame
     pygame.init()
 
+    # cycle through n_generations many generations, breeding new cars each generation
     n = 0
     while n < n_generations:
+        # print to console & change the title of the window
         print('##################')
         print('## GENERATION ' + str(n + 1) + ' ##')
         print('##################')
-
         pygame.display.set_caption('Generation ' + str(n + 1))
 
         # initiate run
         pygame.init()
-        running = True
-        start_time = time.time()
-        current_time = time.time()
+        running = True  # when False, exit the program
+        start_time = time.time()    # the time that the generation began
+        current_time = time.time()  # the current system time
 
+        # whilst the program has been running for less than "duration" many seconds and the program has not be told to
+        # exit:
         while current_time - start_time < duration and running:
+            # check to see if someone has pressed the X or ALT+F4
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
 
+            # do all the graphical stuff
             update_screen(env, screen)
 
+            # update system time
             current_time = time.time()
             env.time_elapsed = int(round((current_time - start_time) * 1000))
 
-        # breed new generation
+        # BREEDING STARTS HERE
+        # create a list of cars, sorted by their score in descending order
         sorted_list = sorted(env.particles, key=lambda particle: particle.score)[::-1]
         env = pyparticles.Environment((width, height), image=track, checkpoints=checkpoints, colliding=False)
 
+        # loop through the best cars in pairs, breeding them (so that car0 breeds with car1 and so forth)
         for i in range(n_to_keep - 1):
             parent_pairs = list(itertools.combinations(range(i + 1), 2))
 
@@ -167,6 +176,7 @@ def train():
                 env.addParticles(1, x=checkpoints[0][0], y=checkpoints[0][1], speed=0, size=5,
                                  control_rods=control_rods, bias=bias, fov=fov, colour=colour)
 
+        # randomly search through the cars from the previous generation and breed some of them
         while len(env.particles) < (generation_size - 5):
             parent1 = sorted_list[random.randint(0, generation_size - 1)]
             parent2 = sorted_list[random.randint(0, generation_size - 1)]
@@ -174,6 +184,7 @@ def train():
             env.addParticles(1, x=checkpoints[0][0], y=checkpoints[0][1], speed=0, size=5, control_rods=control_rods,
                              bias=bias, fov=fov, colour=colour)
 
+        # fill the rest of the world with purely random cars
         while len(env.particles) < generation_size:
             env.addParticles(1, x=checkpoints[0][0], y=checkpoints[0][1], speed=0, size=5)
 
